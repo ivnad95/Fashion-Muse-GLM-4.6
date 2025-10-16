@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "sqlite"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
 }
@@ -84,7 +84,7 @@ model Generation {
   lighting      String?
   
   // Results
-  resultUrls    String   // JSON array of URLs
+  imageUrls     String[] // Array of image URLs
   status        String   @default("pending") // pending, processing, completed, failed, cancelled
   errorMessage  String?
   

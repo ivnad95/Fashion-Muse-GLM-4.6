@@ -46,9 +46,9 @@ const HistoryIcon = () => (
 );
 
 const SettingsIcon = () => (
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3"/>
-    <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 9.96l4.24 4.24m12.44 0l4.24 4.24M1.54 14.04l4.24-4.24"/>
+    <path d="M19.4 15a1.49 1.49 0 0 0 .6-2l-1-3.4a1 1 0 0 0-1-1.2h-3.2a1 1 0 0 0-1-.6l-3.4-1a1.49 1.49 0 0 0-2 .6l-1 3.4a1 1 0 0 0-.6 1.2v3.2a1 1 0 0 0 .6 1l1 3.4a1.49 1.49 0 0 0 2 .6h3.2a1 1 0 0 0 1 .6l3.4 1a1.49 1.49 0 0 0 2-.6l1-3.4a1 1 0 0 0 .6-1.2z"/>
   </svg>
 );
 

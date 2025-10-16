@@ -231,15 +231,15 @@ export function SettingsScreen({
                 <img 
                   src={session.user.image} 
                   alt="Profile" 
-                  className="w-16 h-16 rounded-full object-cover" 
+                  className="w-20 h-20 rounded-full object-cover border-2 border-white/50 shadow-lg" 
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-xl text-gray-400">
+                <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-2xl text-gray-400 border-2 border-white/50 shadow-lg">
                   <span>{session.user?.name?.charAt(0).toUpperCase() || 'U'}</span>
                 </div>
               )}
               <div className="flex-grow">
-                <p className="text-white font-medium">{session.user?.name || 'Google user'}</p>
+                <p className="text-white text-xl font-bold">{session.user?.name || 'Google user'}</p>
                 <p className="text-gray-400 text-sm">{session.user?.email}</p>
                 {loadingRemoteSettings && (
                   <p className="text-blue-300 text-xs mt-1">Loading synced account settings…</p>
@@ -299,7 +299,7 @@ export function SettingsScreen({
 
       {/* Gemini API Key Section */}
       <GlassPanel className="w-full p-4" radius={24}>
-        <h3 className="text-white font-semibold mb-4">Gemini API Key Configuration</h3>
+	          <h3 className="text-white font-semibold mb-4">Gemini API Key Configuration (Backend-synced)</h3>
         <div className="space-y-4">
           {session ? (
             <p className="text-gray-400 text-sm">
@@ -334,7 +334,7 @@ export function SettingsScreen({
 
       {/* App Preferences (always shown) */}
       <GlassPanel className="w-full p-4" radius={24}>
-        <h3 className="text-white font-semibold mb-4">App Preferences</h3>
+	          <h3 className="text-white font-semibold mb-4">App Preferences (Backend-synced)</h3>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-gray-300/80 text-sm mb-1 block">Display Name</label>

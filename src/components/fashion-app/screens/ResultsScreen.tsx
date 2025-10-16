@@ -41,7 +41,7 @@ export function ResultsScreen() {
       
       <div className="grid grid-cols-2 gap-4">
         {displayImages.map((img, i) => (
-          <GlassPanel key={i} className={`w-full ${aspectRatioClass}`} radius={20}>
+          <GlassPanel key={i} className={`w-full ${aspectRatioClass} ${loading ? 'result-placeholder-glow' : ''}`} radius={20}>
             <div className="absolute inset-0 image-container">
               {img ? (
                 <div className="relative group w-full h-full">
@@ -84,8 +84,8 @@ export function ResultsScreen() {
               ) : loading ? (
                 <div className="flex flex-col items-center justify-center h-full">
                   <div className="relative">
-                    <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin"></div>
-                    <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-b-purple-400 rounded-full animate-spin animation-delay-150"></div>
+                    <div className="w-8 h-8 border-2 border-gray-600 border-t-yellow-400 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-b-yellow-400 rounded-full animate-spin animation-delay-150"></div>
                   </div>
                   <p className="text-gray-400 text-xs mt-2">Generating...</p>
                 </div>
