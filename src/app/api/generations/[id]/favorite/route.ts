@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { FavoriteToggleSchema } from '@/schemas/generation.schema';
@@ -38,14 +39,16 @@ export async function POST(
     const { isFavorite } = FavoriteToggleSchema.parse(body);
 
     // Update generation
+    const updatePayload: Prisma.GenerationUpdateManyMutationInput = {
+      isFavorite,
+    };
+
     const generation = await db.generation.updateMany({
       where: {
         id,
         userId: user.id,
       },
-      data: {
-        isFavorite,
-      },
+      data: updatePayload,
     });
 
     if (generation.count === 0) {
