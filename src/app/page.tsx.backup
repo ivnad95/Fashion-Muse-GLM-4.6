@@ -7,7 +7,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 function buildPreviewArray(count: number, url: string | null) {
   const n = Math.max(6, Math.trunc(Number(count)) || 0);
   // Use logo as placeholder when no image is uploaded
-  const placeholderUrl = url || "/logo.svg";
+  const placeholderUrl = url || "/logo.png";
   return Array.from({ length: n }, () => placeholderUrl);
 }
 
@@ -94,7 +94,7 @@ function ImagePlaceholder({ size = "small" }: { size?: "small" | "medium" | "lar
     <div className="absolute inset-0 flex items-center justify-center p-4">
       <div className={`${sizeClasses[size]} ${opacityClasses[size]}`}>
         <img
-          src="/logo.svg"
+          src="/logo.png"
           alt="FASHION MUSE Studio"
           className="w-full h-full object-contain"
         />
@@ -600,7 +600,7 @@ export default function VirtualPhotoshootApp() {
             <div className="flex flex-col items-center justify-center h-full">
               <div className="w-20 h-20 mb-3 opacity-30">
                 <img
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="FASHION MUSE Studio"
                   className="w-full h-full object-contain"
                 />
@@ -641,7 +641,7 @@ export default function VirtualPhotoshootApp() {
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 mb-4 opacity-40">
                 <img
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="FASHION MUSE Studio"
                   className="w-full h-full object-contain animate-pulse"
                 />
@@ -731,7 +731,7 @@ export default function VirtualPhotoshootApp() {
               <div className="flex items-center text-green-400">
                 <div className="w-8 h-8 mr-3 opacity-60">
                   <img
-                    src="/logo.svg"
+                    src="/logo.png"
                     alt="FASHION MUSE Studio"
                     className="w-full h-full object-contain"
                   />

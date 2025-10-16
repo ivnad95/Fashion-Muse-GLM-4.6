@@ -20,9 +20,9 @@ export const metadata: Metadata = {
   keywords: ["Fashion", "AI", "Photography", "Photoshoot", "Studio", "Fashion Muse"],
   authors: [{ name: "FASHION MUSE Studio" }],
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
   openGraph: {
     title: "FASHION MUSE Studio",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/logo.svg",
+        url: "/logo.png",
       },
     ],
   },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "FASHION MUSE Studio",
     description: "Transform your photos into professional fashion art with AI",
     images: [
-      "/logo.svg",
+      "/logo.png",
     ],
   },
 };

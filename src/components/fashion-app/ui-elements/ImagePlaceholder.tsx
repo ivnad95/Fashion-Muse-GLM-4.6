@@ -24,7 +24,7 @@ export function ImagePlaceholder({ size = "small" }: ImagePlaceholderProps) {
     <div className="absolute inset-0 flex items-center justify-center p-4">
       <div className={`${sizeClasses[size]} ${opacityClasses[size]}`}>
         <img
-          src="/logo.svg"
+          src="/logo.png"
           alt="FASHION MUSE Studio"
           className="w-full h-full object-contain"
         />

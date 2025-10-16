@@ -42,7 +42,7 @@ export function HistoryScreen() {
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 opacity-30">
             <img
-              src="/logo.svg"
+              src="/logo.png"
               alt="FASHION MUSE Studio"
               className="w-full h-full object-contain"
             />

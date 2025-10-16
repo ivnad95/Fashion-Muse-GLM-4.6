@@ -19,7 +19,7 @@ export function GenerationProgress({ progress }: GenerationProgressProps) {
       <div className="flex flex-col items-center">
         <div className="w-16 h-16 mb-4 opacity-40">
           <img
-            src="/logo.svg"
+            src="/logo.png"
             alt="FASHION MUSE Studio"
             className="w-full h-full object-contain animate-pulse"
           />
