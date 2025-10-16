@@ -9,7 +9,7 @@ interface PhoneFrameProps {
  */
 export function PhoneFrame({ children }: PhoneFrameProps) {
   return (
-    <div className="phone">
+    <div className="phone no-frame-on-mobile">
       <div className="phone-shimmer-bg" />
       {children}
     </div>

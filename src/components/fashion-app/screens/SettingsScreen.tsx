@@ -217,8 +217,9 @@ export function SettingsScreen({
       <GlassyTitle>Settings</GlassyTitle>
       
       {/* Authentication Section */}
+      {/* Authentication Section */}
       <GlassPanel className="w-full p-4" radius={24}>
-        <h3 className="text-white font-semibold mb-4">Account</h3>
+        <h3 className="text-white font-semibold mb-4">Account & Authentication</h3>
         {status === 'loading' ? (
           <div className="flex items-center justify-center py-4">
             <div className="loader"></div>
@@ -296,8 +297,9 @@ export function SettingsScreen({
         )}
       </GlassPanel>
 
+      {/* Gemini API Key Section */}
       <GlassPanel className="w-full p-4" radius={24}>
-        <h3 className="text-white font-semibold mb-4">Gemini API Key</h3>
+        <h3 className="text-white font-semibold mb-4">Gemini API Key Configuration</h3>
         <div className="space-y-4">
           {session ? (
             <p className="text-gray-400 text-sm">
@@ -330,9 +332,9 @@ export function SettingsScreen({
         </div>
       </GlassPanel>
 
-      {/* Profile Settings (always shown) */}
+      {/* App Preferences (always shown) */}
       <GlassPanel className="w-full p-4" radius={24}>
-        <h3 className="text-white font-semibold mb-4">Profile Settings</h3>
+        <h3 className="text-white font-semibold mb-4">App Preferences</h3>
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-gray-300/80 text-sm mb-1 block">Display Name</label>

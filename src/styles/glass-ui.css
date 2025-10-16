@@ -298,3 +298,27 @@
     transform: translateY(0);
   }
 }
+
+
+/* Mobile Frame Removal */
+@media (max-width: 768px) {
+  .no-frame-on-mobile.phone {
+    width: 100%;
+    height: 100vh;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: auto;
+    padding: 0;
+  }
+
+  .no-frame-on-mobile .phone-shimmer-bg {
+    display: none;
+  }
+
+  .no-frame-on-mobile .screen-content {
+    padding: 20px 16px 100px; /* Adjust padding for mobile view */
+  }
+}
+

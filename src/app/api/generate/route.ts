@@ -19,7 +19,7 @@ class GeminiAPIError extends Error {
 // ==========================================
 const GEMINI_CONFIG = {
     apiKey: process.env.GEMINI_API_KEY || "",
-    model: "gemini-2.5-flash-image-preview",
+    model: "gemini-2.5-flash-image",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
     maxRetries: 3,
     initialDelay: 1000
