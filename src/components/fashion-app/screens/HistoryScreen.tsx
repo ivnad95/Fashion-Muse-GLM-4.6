@@ -41,9 +41,9 @@ export function HistoryScreen() {
       <GlassPanel className="w-full p-6" radius={20}>
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 opacity-30">
-            <img 
-              src="/logo.png" 
-              alt="FASHION MUSE Studio" 
+            <img
+              src="/logo.svg"
+              alt="FASHION MUSE Studio"
               className="w-full h-full object-contain"
             />
           </div>

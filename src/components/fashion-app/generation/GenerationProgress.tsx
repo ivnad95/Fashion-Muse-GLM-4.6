@@ -18,9 +18,9 @@ export function GenerationProgress({ progress }: GenerationProgressProps) {
     <GlassPanel className="w-full p-6 mb-4" radius={20}>
       <div className="flex flex-col items-center">
         <div className="w-16 h-16 mb-4 opacity-40">
-          <img 
-            src="/logo.png" 
-            alt="FASHION MUSE Studio" 
+          <img
+            src="/logo.svg"
+            alt="FASHION MUSE Studio"
             className="w-full h-full object-contain animate-pulse"
           />
         </div>

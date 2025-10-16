@@ -20,7 +20,9 @@ export const metadata: Metadata = {
   keywords: ["Fashion", "AI", "Photography", "Photoshoot", "Studio", "Fashion Muse"],
   authors: [{ name: "FASHION MUSE Studio" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/files/fab48b0c-dd0e-44b8-a6cb-cc2965fc53c6_pmlogo1%20%281%29.png?auth_key=1792007954-723675d1b3c8408c8011b668600c44c2-0-3d288ad2b296041186aeea0bf0e03f7f",
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
   openGraph: {
     title: "FASHION MUSE Studio",
@@ -28,11 +30,19 @@ export const metadata: Metadata = {
     url: "https://fashion-muse-studio.com",
     siteName: "FASHION MUSE Studio",
     type: "website",
+    images: [
+      {
+        url: "/logo.svg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "FASHION MUSE Studio",
     description: "Transform your photos into professional fashion art with AI",
+    images: [
+      "/logo.svg",
+    ],
   },
 };
 

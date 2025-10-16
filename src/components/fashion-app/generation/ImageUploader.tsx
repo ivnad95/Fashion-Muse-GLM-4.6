@@ -27,9 +27,9 @@ export function ImageUploader({ uploadedImage, uploading, onImageSelect }: Image
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
             <div className="w-20 h-20 mb-3 opacity-30">
-              <img 
-                src="/logo.png" 
-                alt="FASHION MUSE Studio" 
+              <img
+                src="/logo.svg"
+                alt="FASHION MUSE Studio"
                 className="w-full h-full object-contain"
               />
             </div>
