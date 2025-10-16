@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { PhoneFrame, BottomNavigation, Lightbox } from './ui-elements';
 import { HomeScreen, ResultsScreen, HistoryScreen, SettingsScreen } from './screens';
 import { useUIStore } from '@/store/useUIStore';
@@ -21,6 +22,7 @@ function getGreeting(): string {
  */
 export function FashionMuseApp() {
   const { currentTab, setTab } = useUIStore();
+  const { data: session, status } = useSession();
   const [greeting, setGreeting] = useState<string>(getGreeting());
   const [profileName, setProfileName] = useState<string>("");
   const [customApiKey, setCustomApiKey] = useState<string>("");
@@ -36,6 +38,59 @@ export function FashionMuseApp() {
       console.error('Error loading settings:', error);
     }
   }, []);
+
+  useEffect(() => {
+    if (!session?.user?.email) {
+      return;
+    }
+
+    const loadAccountSettings = async () => {
+      try {
+        const response = await fetch('/api/user/settings', { cache: 'no-store' });
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        if (data?.success && data.settings) {
+          const settings = data.settings;
+
+          if (settings.displayName) {
+            setProfileName(settings.displayName);
+          } else if (session.user?.name) {
+            setProfileName(session.user.name);
+          }
+
+          if (settings.geminiApiKey) {
+            setCustomApiKey(settings.geminiApiKey);
+          } else {
+            setCustomApiKey('');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load remote settings:', error);
+      }
+    };
+
+    loadAccountSettings();
+  }, [session?.user?.email, session?.user?.name]);
+
+  useEffect(() => {
+    if (status !== 'unauthenticated') {
+      return;
+    }
+
+    try {
+      const name = localStorage.getItem("virtualPhotoshoot.profileName");
+      const apiKey = localStorage.getItem("virtualPhotoshoot.customApiKey");
+      if (name) {
+        setProfileName(name);
+      }
+      setCustomApiKey(apiKey || "");
+    } catch (error) {
+      console.error('Error restoring local settings:', error);
+    }
+  }, [status]);
 
   // Update greeting every minute
   useEffect(() => {

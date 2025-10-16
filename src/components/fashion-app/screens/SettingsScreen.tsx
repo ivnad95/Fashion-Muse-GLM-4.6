@@ -30,6 +30,8 @@ export function SettingsScreen({
   
   const [localName, setLocalName] = useState(profileName);
   const [localApiKey, setLocalApiKey] = useState(customApiKey);
+  const [loadingRemoteSettings, setLoadingRemoteSettings] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalName(profileName);
@@ -39,22 +41,132 @@ export function SettingsScreen({
     setLocalApiKey(customApiKey);
   }, [customApiKey]);
 
-  const handleSaveSettings = () => {
+  useEffect(() => {
+    if (!session?.user?.email) {
+      return;
+    }
+
+    const loadSettings = async () => {
+      try {
+        setLoadingRemoteSettings(true);
+        setStatusMessage(null);
+        const response = await fetch('/api/user/settings', {
+          cache: 'no-store',
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+        if (data?.success && data.settings) {
+          const settings = data.settings;
+
+          if (settings.displayName) {
+            setLocalName(settings.displayName);
+            setProfileName(settings.displayName);
+          } else if (session.user?.name) {
+            setLocalName(session.user.name);
+            setProfileName(session.user.name);
+          }
+
+          if (settings.aspectRatio) {
+            setAspectRatio(settings.aspectRatio as AspectRatio);
+          }
+
+          if (typeof settings.blurStrength === 'number') {
+            setBlurStrength(settings.blurStrength);
+          }
+
+          if (settings.geminiApiKey) {
+            setLocalApiKey(settings.geminiApiKey);
+            setCustomApiKey(settings.geminiApiKey);
+          } else {
+            setLocalApiKey('');
+            setCustomApiKey('');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load account settings', error);
+        setStatusMessage('Unable to load account settings right now. You can still update them below.');
+      } finally {
+        setLoadingRemoteSettings(false);
+      }
+    };
+
+    loadSettings();
+  }, [session?.user?.email, session?.user?.name, setProfileName, setAspectRatio, setBlurStrength, setCustomApiKey]);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      try {
+        const name = localStorage.getItem("virtualPhotoshoot.profileName");
+        const apiKey = localStorage.getItem("virtualPhotoshoot.customApiKey");
+        if (name) {
+          setLocalName(name);
+          setProfileName(name);
+        }
+        if (apiKey) {
+          setLocalApiKey(apiKey);
+          setCustomApiKey(apiKey);
+        } else {
+          setLocalApiKey('');
+          setCustomApiKey('');
+        }
+      } catch (error) {
+        console.error('Error loading local settings', error);
+      }
+    }
+  }, [status, setProfileName, setCustomApiKey]);
+
+  const handleSaveSettings = async () => {
+    setStatusMessage(null);
     setProfileName(localName);
     setCustomApiKey(localApiKey);
-    
-    // Save to localStorage
-    localStorage.setItem("virtualPhotoshoot.profileName", localName);
-    if (localApiKey) {
-      localStorage.setItem("virtualPhotoshoot.customApiKey", localApiKey);
+
+    if (session) {
+      try {
+        const response = await fetch('/api/user/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            displayName: localName,
+            aspectRatio,
+            blurStrength,
+            geminiApiKey: localApiKey || undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        setStatusMessage('Account settings updated successfully.');
+      } catch (error) {
+        console.error('Failed to save account settings', error);
+        setStatusMessage('Failed to update account settings. Please try again.');
+      }
+    } else {
+      try {
+        localStorage.setItem("virtualPhotoshoot.profileName", localName);
+        if (localApiKey) {
+          localStorage.setItem("virtualPhotoshoot.customApiKey", localApiKey);
+        } else {
+          localStorage.removeItem("virtualPhotoshoot.customApiKey");
+        }
+        setStatusMessage('Settings saved locally.');
+      } catch (error) {
+        console.error('Failed to save local settings', error);
+        setStatusMessage('Failed to save settings locally.');
+      }
     }
-    
-    alert("Settings saved successfully!");
   };
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
   };
+
+  const isErrorMessage = statusMessage ? /fail|unable|error/i.test(statusMessage) : false;
 
   return (
     <div className="screen-content space-y-6">
@@ -82,13 +194,20 @@ export function SettingsScreen({
                 </div>
               )}
               <div className="flex-grow">
-                <p className="text-white font-medium">{session.user?.name}</p>
+                <p className="text-white font-medium">{session.user?.name || 'Google user'}</p>
                 <p className="text-gray-400 text-sm">{session.user?.email}</p>
+                {loadingRemoteSettings && (
+                  <p className="text-blue-300 text-xs mt-1">Loading synced account settings…</p>
+                )}
               </div>
             </div>
-            <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3">
-              <p className="text-green-400 text-sm">
-                ✓ Signed in with Google - Using your Gemini API key automatically
+            <div
+              className={`${localApiKey ? 'bg-green-500/20 border border-green-500/50' : 'bg-yellow-500/20 border border-yellow-500/50'} rounded-lg p-3`}
+            >
+              <p className={`${localApiKey ? 'text-green-400' : 'text-yellow-400'} text-sm`}>
+                {localApiKey
+                  ? '✓ Gemini API key on file. Every generation will use your Google account credentials.'
+                  : 'Add your Gemini API key below to enable generations with your Google account.'}
               </p>
             </div>
             <button 
@@ -124,27 +243,34 @@ export function SettingsScreen({
         )}
       </GlassPanel>
 
-      {/* Manual API Key Section (only when not signed in) */}
-      {!session && (
-        <GlassPanel className="w-full p-4" radius={24}>
-          <h3 className="text-white font-semibold mb-4">Manual API Key Setup</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="text-gray-300/80 text-sm mb-1 block">Gemini API Key</label>
-              <input
-                className="glass-3d-button px-3 py-2 rounded-md text-gray-900 bg-white/80 focus:outline-none w-full"
-                placeholder="Enter your Gemini API key"
-                value={localApiKey}
-                onChange={(e) => setLocalApiKey(e.target.value)}
-                type="password"
-              />
-              <p className="text-gray-400 text-xs mt-1">
-                Get your key from: <span className="text-blue-400">makersuite.google.com/app/apikey</span>
-              </p>
-            </div>
+      <GlassPanel className="w-full p-4" radius={24}>
+        <h3 className="text-white font-semibold mb-4">Gemini API Key</h3>
+        <div className="space-y-4">
+          {session ? (
+            <p className="text-gray-400 text-sm">
+              Provide the Gemini API key associated with <span className="text-white">{session.user?.email}</span>.
+              We store it securely and use it automatically for generations.
+            </p>
+          ) : (
+            <p className="text-gray-400 text-sm">
+              Not signed in? Paste your Gemini API key below so we can run generations on your behalf.
+              You can create one at <span className="text-blue-400">makersuite.google.com/app/apikey</span>.
+            </p>
+          )}
+          <div>
+            <label className="text-gray-300/80 text-sm mb-1 block">Gemini API Key</label>
+            <input
+              className="glass-3d-button px-3 py-2 rounded-md text-gray-900 bg-white/80 focus:outline-none w-full"
+              placeholder="Enter your Gemini API key"
+              value={localApiKey}
+              onChange={(e) => setLocalApiKey(e.target.value.trim())}
+              type="password"
+              autoComplete="new-password"
+              disabled={status === 'loading' || loadingRemoteSettings}
+            />
           </div>
-        </GlassPanel>
-      )}
+        </div>
+      </GlassPanel>
 
       {/* Profile Settings (always shown) */}
       <GlassPanel className="w-full p-4" radius={24}>
@@ -188,12 +314,21 @@ export function SettingsScreen({
             <button 
               className="glass-3d-button flex-1 py-3 px-6 rounded-xl" 
               onClick={handleSaveSettings}
+              disabled={status === 'loading' || loadingRemoteSettings}
             >
               <span className="button-text">Save Settings</span>
             </button>
           </div>
         </div>
       </GlassPanel>
+
+      {statusMessage && (
+        <GlassPanel className="w-full p-3" radius={16}>
+          <p className={`text-sm text-center ${isErrorMessage ? 'text-red-400' : 'text-green-400'}`}>
+            {statusMessage}
+          </p>
+        </GlassPanel>
+      )}
     </div>
   );
 }

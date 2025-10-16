@@ -82,6 +82,7 @@ CREATE TABLE "UserSettings" (
     "blurStrength" INTEGER NOT NULL DEFAULT 24,
     "theme" TEXT NOT NULL DEFAULT 'dark',
     "language" TEXT NOT NULL DEFAULT 'en',
+    "geminiApiKey" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -135,4 +136,3 @@ ALTER TABLE "Generation" ADD CONSTRAINT "Generation_userId_fkey" FOREIGN KEY ("u
 
 -- AddForeignKey
 ALTER TABLE "UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-

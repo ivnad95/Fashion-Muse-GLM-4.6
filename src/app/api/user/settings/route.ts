@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       blurStrength: 24,
       theme: 'dark',
       language: 'en',
+      geminiApiKey: undefined,
     };
 
     return NextResponse.json({
@@ -83,13 +84,20 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const validatedSettings = UserSettingsSchema.parse(body);
 
+    const { geminiApiKey, ...rest } = validatedSettings;
+
+    const payload = {
+      ...rest,
+      ...(geminiApiKey !== undefined ? { geminiApiKey } : {}),
+    };
+
     // Upsert settings
     const settings = await db.userSettings.upsert({
       where: { userId: user.id },
-      update: validatedSettings,
+      update: payload,
       create: {
         userId: user.id,
-        ...validatedSettings,
+        ...payload,
       },
     });
 

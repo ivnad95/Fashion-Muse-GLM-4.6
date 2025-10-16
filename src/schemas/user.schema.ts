@@ -9,6 +9,17 @@ export const UserSettingsSchema = z.object({
   blurStrength: z.number().int().min(10).max(50).default(24),
   theme: z.enum(['light', 'dark', 'auto']).default('dark'),
   language: z.string().length(2).default('en'),
+  geminiApiKey: z
+    .union([
+      z.string().min(20, 'Gemini API key looks too short').max(200, 'Gemini API key looks too long'),
+      z.literal(''),
+      z.undefined(),
+      z.null(),
+    ])
+    .transform((value) => {
+      if (!value) return undefined;
+      return value;
+    }),
 });
 
 export type UserSettingsInput = z.infer<typeof UserSettingsSchema>;

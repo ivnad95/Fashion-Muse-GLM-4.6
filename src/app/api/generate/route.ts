@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
 
 class GeminiAPIError extends Error {
     status?: number;
@@ -425,19 +426,23 @@ export async function POST(request: NextRequest) {
     let geminiApiKey = "";
     
     if (useUserAccount && userId) {
-      // For authenticated users, we would typically retrieve their API key from the database
-      // For now, we'll use the environment variable as a fallback
-      // In a real implementation, you would store and retrieve the user's Google API tokens
-      geminiApiKey = process.env.GEMINI_API_KEY || "";
-      
+      const user = await db.user.findUnique({
+        where: { email: userId },
+        include: {
+          settings: true,
+        },
+      });
+
+      geminiApiKey = user?.settings?.geminiApiKey || apiKey || process.env.GEMINI_API_KEY || "";
+
       if (!geminiApiKey) {
         return NextResponse.json(
-          { error: 'Google account authentication is not fully configured. Please contact support.' },
+          { error: 'No Gemini API key on file for your Google account. Please add one in Settings.' },
           { status: 400 }
         );
       }
-      
-      console.log(`Using API key for authenticated user: ${userId}`);
+
+      console.log(`Using stored API key for authenticated user: ${userId}`);
     } else {
       // Use provided API key or fallback to environment variable
       geminiApiKey = apiKey || process.env.GEMINI_API_KEY;

@@ -58,6 +58,12 @@ export function useImageGeneration() {
 
       if (session) {
         useUserAccount = true;
+        apiKey = customApiKey || "";
+
+        if (!apiKey) {
+          throw new Error("No Gemini API key on file for your Google account yet. Add one in Settings.");
+        }
+
         console.log('Using authenticated Google account for API access');
       } else {
         apiKey = customApiKey || localStorage.getItem("virtualPhotoshoot.customApiKey") || "";

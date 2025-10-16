@@ -118,6 +118,7 @@ model UserSettings {
   blurStrength Int      @default(24)
   theme        String   @default("dark")
   language     String   @default("en")
+  geminiApiKey String?
   
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
