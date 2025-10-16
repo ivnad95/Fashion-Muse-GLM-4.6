@@ -1,0 +1,16 @@
+[0;32m[2025-10-15 23:45:20] Starting FASHION MUSE Studio deployment...[0m
+[0;32m[2025-10-15 23:45:20] Starting Docker deployment...[0m
+[0;32m[2025-10-15 23:45:20] Environment file found ✓[0m
+[0;32m[2025-10-15 23:45:20] Creating backup of current deployment...[0m
+[0;32m[2025-10-15 23:45:22] Backup created ✓[0m
+[0;32m[2025-10-15 23:45:22] Installing dependencies...[0m
+[0;32m[2025-10-15 23:45:47] Starting FASHION MUSE Studio deployment...[0m
+[0;32m[2025-10-15 23:45:47] Starting Docker deployment...[0m
+[0;32m[2025-10-15 23:45:47] Environment file found ✓[0m
+[0;32m[2025-10-15 23:45:47] Creating backup of current deployment...[0m
+[0;32m[2025-10-15 23:45:50] Backup created ✓[0m
+[0;32m[2025-10-15 23:45:50] Installing dependencies...[0m
+[0;32m[2025-10-15 23:46:00] Dependencies installed ✓[0m
+[0;32m[2025-10-15 23:46:00] Generating Prisma client...[0m
+[0;32m[2025-10-15 23:46:01] Prisma client generated ✓[0m
+[0;32m[2025-10-15 23:46:01] Building Docker image...[0m

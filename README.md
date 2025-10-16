@@ -1,6 +1,8 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# 🎨 Fashion Muse Studio - AI-Powered Fashion Photography
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
+Transform your photos into professional fashion art with AI. Create stunning photoshoots in 8 different styles using Gemini 2.5 Flash Image Preview.
+
+> **📋 Looking to improve this project?** Check out the comprehensive improvement plan in [`IMPROVEMENT_PLAN.md`](./IMPROVEMENT_PLAN.md)
 
 ## ✨ Technology Stack
 
@@ -41,24 +43,56 @@ This scaffold provides a robust foundation built with:
 - **📅 Date-fns** - Modern JavaScript date utility library
 - **🪝 ReactUse** - Collection of essential React hooks for modern development
 
-## 🎯 Why This Scaffold?
+## 🎯 Features
 
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
+### AI-Powered Generation
+- **8 Professional Camera Angles** - Hero low angle, beauty close-up, editorial side glance, and more
+- **Multiple Lighting Setups** - Rembrandt, butterfly, split, loop, clamshell, and rim lighting
+- **Studio Backgrounds** - Seamless white, light gray, and professional cyclorama options
+- **Batch Generation** - Create 1-8 images simultaneously with different variations
+- **Gemini 2.5 Flash** - Powered by Google's latest image generation model
+
+### User Experience
+- **Glassmorphism UI** - Beautiful, modern interface with 3D glass effects
+- **Mobile-First Design** - Fully responsive on all devices
+- **Google Sign-In** - Seamless authentication with your Google account
+- **Manual API Key Option** - Use your own Gemini API key without signing in
+- **Real-time Progress** - Live updates during image generation (Socket.IO ready)
+
+### Technical Features
+- **Type-Safe** - Full TypeScript with Zod validation
+- **Database Persistence** - SQLite (dev) / PostgreSQL (prod) with Prisma ORM
+- **Component Library** - Complete shadcn/ui components
+- **Custom Server** - Next.js + Socket.IO integration
+- **Docker Ready** - Containerized deployment configuration
+- **Production Optimized** - Performance-focused build configuration
+
+## 📚 Improvement Documentation
+
+This project includes comprehensive improvement documentation:
+
+- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Start here! High-level overview of all improvements
+- **[IMPROVEMENT_PLAN.md](./IMPROVEMENT_PLAN.md)** - Complete roadmap with 8 implementation phases
+- **[QUICK_START.md](./QUICK_START.md)** - Day-by-day implementation guide
+- **[PROGRESS_TRACKER.md](./PROGRESS_TRACKER.md)** - Track your implementation progress
+- **[TECHNICAL_SPECS.md](./TECHNICAL_SPECS.md)** - Detailed technical specifications
+- **[env.template](./env.template)** - Environment variable configuration template
 
 ## 🚀 Quick Start
+
+### Basic Setup
 
 ```bash
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp env.template .env.local
+# Edit .env.local and add required values
+
+# Set up database
+npx prisma generate
+npx prisma db push
 
 # Start development server
 npm run dev
@@ -71,6 +105,18 @@ npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see your application running.
+
+### Environment Configuration
+
+See [`env.template`](./env.template) for all required environment variables. At minimum, you need:
+
+- `DATABASE_URL` - Database connection string
+- `NEXTAUTH_URL` - Your application URL
+- `NEXTAUTH_SECRET` - Secret for JWT encryption (generate with `openssl rand -base64 32`)
+
+For full functionality:
+- Google OAuth credentials (see [`GOOGLE_SIGNIN_SETUP.md`](./GOOGLE_SIGNIN_SETUP.md))
+- Gemini API key (see [`GEMINI_SETUP.md`](./GEMINI_SETUP.md))
 
 ## 🤖 Powered by Z.ai
 
@@ -87,12 +133,41 @@ Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https:
 ## 📁 Project Structure
 
 ```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+Fashion Muse Studio/
+├── src/
+│   ├── app/
+│   │   ├── api/               # API routes
+│   │   │   ├── auth/         # NextAuth endpoints
+│   │   │   ├── generate/     # Image generation endpoint
+│   │   │   └── health/       # Health check
+│   │   ├── layout.tsx        # Root layout with providers
+│   │   ├── page.tsx          # Main application UI
+│   │   └── globals.css       # Global styles
+│   ├── components/
+│   │   ├── providers/        # React context providers
+│   │   └── ui/              # shadcn/ui components (48 components)
+│   ├── hooks/               # Custom React hooks
+│   └── lib/
+│       ├── auth.ts          # NextAuth configuration
+│       ├── db.ts            # Prisma client
+│       ├── socket.ts        # Socket.IO setup
+│       └── utils.ts         # Utility functions
+├── prisma/
+│   └── schema.prisma        # Database schema
+├── public/                  # Static assets
+├── server.ts               # Custom server (Next.js + Socket.IO)
+├── docker-compose.yml      # Docker configuration
+├── deploy.sh              # Deployment script
+└── Documentation/
+    ├── IMPROVEMENT_PLAN.md
+    ├── QUICK_START.md
+    ├── PROGRESS_TRACKER.md
+    ├── TECHNICAL_SPECS.md
+    ├── IMPLEMENTATION_SUMMARY.md
+    ├── GEMINI_SETUP.md
+    ├── GOOGLE_SIGNIN_SETUP.md
+    ├── DEPLOYMENT.md
+    └── AGENTS.md
 ```
 
 ## 🎨 Available Features & Components
@@ -129,13 +204,50 @@ This scaffold includes a comprehensive set of modern web development tools:
 - **Type Safety**: End-to-end TypeScript with Zod validation
 - **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
 
-## 🤝 Get Started with Z.ai
+## 🚀 Deployment
 
-1. **Clone this scaffold** to jumpstart your project
-2. **Visit [chat.z.ai](https://chat.z.ai)** to access your AI coding assistant
-3. **Start building** with intelligent code generation and assistance
-4. **Deploy with confidence** using the production-ready setup
+### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Or use the deployment script
+./deploy.sh
+```
+
+### Vercel Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+```
+
+See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for detailed deployment instructions.
+
+## 📖 Additional Documentation
+
+- **[GEMINI_SETUP.md](./GEMINI_SETUP.md)** - Set up Gemini API for image generation
+- **[GOOGLE_SIGNIN_SETUP.md](./GOOGLE_SIGNIN_SETUP.md)** - Configure Google OAuth
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Comprehensive deployment guide
+- **[AGENTS.md](./AGENTS.md)** - Project guidelines and coding standards
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow the guidelines in [`AGENTS.md`](./AGENTS.md) when making changes.
+
+### Before Contributing
+1. Read [`IMPROVEMENT_PLAN.md`](./IMPROVEMENT_PLAN.md) to understand the roadmap
+2. Check [`PROGRESS_TRACKER.md`](./PROGRESS_TRACKER.md) to see what's being worked on
+3. Follow the coding standards in [`AGENTS.md`](./AGENTS.md)
+4. Test your changes thoroughly
+
+## 📝 License
+
+This project is built with open-source technologies. Please respect the licenses of all dependencies.
 
 ---
 
-Built with ❤️ for the developer community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
+**Fashion Muse Studio** - Transform your photos into professional fashion art with AI  
+Built with ❤️ for the creative community | Powered by [Gemini 2.5 Flash](https://ai.google.dev/) 🚀
