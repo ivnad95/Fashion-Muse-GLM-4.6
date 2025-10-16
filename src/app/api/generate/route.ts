@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+class GeminiAPIError extends Error {
+    status?: number;
+    details?: unknown;
+
+    constructor(message: string, options?: { status?: number; details?: unknown }) {
+        super(message);
+        this.name = 'GeminiAPIError';
+        this.status = options?.status;
+        this.details = options?.details;
+    }
+}
+
 // ==========================================
 // CONFIGURATION
 // ==========================================
@@ -112,7 +124,38 @@ async function fetchWithBackoff(url: string, options: RequestInit, retries = GEM
 // ==========================================
 // SINGLE IMAGE GENERATION
 // ==========================================
-async function generateSingleImage(base64ImageData: string, variation: any, index: number): Promise<string> {
+const isQuotaError = (status?: number, errorData?: any): boolean => {
+    if (status === 429) {
+        return true;
+    }
+
+    const message: string | undefined = errorData?.error?.message ?? errorData?.message;
+    const statusText: string | undefined = errorData?.error?.status;
+
+    return [message, statusText]
+        .filter(Boolean)
+        .some((value) => typeof value === 'string' && value.toLowerCase().includes('quota'));
+};
+
+const extractRetryDelay = (errorData: any): number | null => {
+    const details = Array.isArray(errorData?.error?.details) ? errorData.error.details : [];
+
+    for (const detail of details) {
+        const retryDelay = detail?.retryDelay;
+        if (retryDelay) {
+            const seconds = Number(retryDelay.seconds ?? retryDelay?.seconds ?? 0);
+            const nanos = Number(retryDelay.nanos ?? retryDelay?.nanos ?? 0);
+            const millis = seconds * 1000 + Math.ceil(nanos / 1_000_000);
+            if (millis > 0) {
+                return millis;
+            }
+        }
+    }
+
+    return null;
+};
+
+async function generateSingleImage(base64ImageData: string, variation: any, index: number, attempt = 1): Promise<string> {
     // Select lighting and background for this variation
     const lighting = LIGHTING_SETUPS[index % LIGHTING_SETUPS.length];
     const background = STUDIO_BACKGROUNDS[index % STUDIO_BACKGROUNDS.length];
@@ -214,17 +257,31 @@ OUTPUT: Generate a flawless, photorealistic professional studio portrait that lo
         if (!response.ok) {
             const errorData = await response.json();
             console.error('API Error Response:', errorData);
-            
-            let errorMessage = `API request failed with status ${response.status}`;
-            if (errorData.error) {
-                if (errorData.error.message) {
-                    errorMessage = errorData.error.message;
-                } else if (errorData.error.details) {
-                    errorMessage = errorData.error.details;
+
+            if (response.status === 429 || isQuotaError(response.status, errorData)) {
+                const retryDelay = extractRetryDelay(errorData) ?? GEMINI_CONFIG.initialDelay * attempt;
+
+                if (attempt <= GEMINI_CONFIG.maxRetries) {
+                    console.warn(`Gemini quota hit. Retrying attempt ${attempt}/${GEMINI_CONFIG.maxRetries} in ${retryDelay}ms`);
+                    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+                    return generateSingleImage(base64ImageData, variation, index, attempt + 1);
                 }
+
+                throw new GeminiAPIError(
+                    'Gemini API quota exceeded. Please enable billing or wait before retrying.',
+                    { status: 429, details: errorData }
+                );
             }
-            
-            throw new Error(errorMessage);
+
+            let errorMessage = `API request failed with status ${response.status}`;
+
+            if (errorData?.error?.message) {
+                errorMessage = errorData.error.message;
+            } else if (typeof errorData?.error?.details === 'string') {
+                errorMessage = errorData.error.details;
+            }
+
+            throw new GeminiAPIError(errorMessage, { status: response.status, details: errorData });
         }
 
         const result = await response.json();
@@ -275,7 +332,7 @@ OUTPUT: Generate a flawless, photorealistic professional studio portrait that lo
                 partsCount: candidate?.content?.parts?.length
             });
             
-            throw new Error(errorMessage);
+            throw new GeminiAPIError(errorMessage, { status: 500, details: { finishReason, textResponse } });
         }
 
     } catch (error: any) {
@@ -306,14 +363,6 @@ async function generatePhotoshoot(base64ImageData: string, numberOfImages = 8) {
     console.log(`Generating ${numberOfImages} professional studio images with Gemini...`);
     
     // Generate all images in parallel
-    const generationPromises = selectedVariations.map((variation, index) => 
-        generateSingleImage(base64ImageData, variation, index)
-    );
-    
-    // Wait for all to complete (some may fail)
-    const results = await Promise.allSettled(generationPromises);
-    
-    // Process results
     const successfulImages: Array<{
         index: number;
         name: string;
@@ -325,30 +374,40 @@ async function generatePhotoshoot(base64ImageData: string, numberOfImages = 8) {
         name: string;
         error: string;
     }> = [];
-    
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
+
+    for (let i = 0; i < selectedVariations.length; i += 1) {
+        const variation = selectedVariations[i];
+
+        try {
+            const imageUrl = await generateSingleImage(base64ImageData, variation, i);
             successfulImages.push({
-                index,
-                name: selectedVariations[index].name,
-                imageUrl: result.value,
-                prompt: selectedVariations[index].prompt
+                index: i,
+                name: variation.name,
+                imageUrl,
+                prompt: variation.prompt,
             });
-        } else {
+        } catch (error: any) {
+            const isQuota = error instanceof GeminiAPIError && error.status === 429;
+
             failedImages.push({
-                index,
-                name: selectedVariations[index].name,
-                error: result.reason.message
+                index: i,
+                name: variation.name,
+                error: error?.message ?? 'Unknown error',
             });
+
+            if (isQuota) {
+                console.error('Aborting remaining generations due to Gemini quota exhaustion');
+                break;
+            }
         }
-    });
-    
+    }
+
     console.log(`Generation complete: ${successfulImages.length} succeeded, ${failedImages.length} failed`);
-    
+
     return {
         successful: successfulImages,
         failed: failedImages,
-        total: numberOfImages
+        total: numberOfImages,
     };
 }
 
@@ -415,14 +474,38 @@ export async function POST(request: NextRequest) {
 
     const results = await generatePhotoshoot(base64ImageData, numberOfImages);
 
+    if (results.successful.length === 0 && results.failed.length > 0) {
+      const quotaFailure = results.failed.find((failure) => failure.error?.toLowerCase?.().includes('quota'));
+
+      if (quotaFailure) {
+        throw new GeminiAPIError(
+          'Gemini API quota exceeded. Please enable billing or provide a key with available quota.',
+          { status: 429 }
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      results: results,
+      results,
       message: `Generated ${results.successful.length} out of ${results.total} images successfully`
     });
 
   } catch (error: any) {
     console.error('Generation error:', error);
+    if (error instanceof GeminiAPIError && error.status) {
+      const statusCode = error.status;
+      const payload: Record<string, unknown> = {
+        error: error.message,
+      };
+
+      if (statusCode === 429) {
+        payload.suggestion = 'Enable billing for your Gemini API key or provide a key with available quota.';
+        payload.docs = 'https://ai.google.dev/gemini-api/docs/image-generation#pricing';
+      }
+
+      return NextResponse.json(payload, { status: statusCode });
+    }
     return NextResponse.json(
       { 
         error: 'Failed to generate images',
