@@ -59,7 +59,7 @@ export async function POST(
         isFavorite: {
           set: isFavorite,
         },
-      },
+      } as any,
     });
 
     return NextResponse.json({
