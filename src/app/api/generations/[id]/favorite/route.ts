@@ -56,7 +56,9 @@ export async function POST(
         id,
       },
       data: {
-        isFavorite,
+        isFavorite: {
+          set: isFavorite,
+        },
       },
     });
 
