@@ -47,9 +47,13 @@ export async function GET(
     }
 
     // Parse result URLs
+    const rawResultUrls = (
+      generation as { resultUrls?: string | null }
+    ).resultUrls;
+
     const parsedGeneration = {
       ...generation,
-      resultUrls: JSON.parse(generation.resultUrls || '[]'),
+      resultUrls: JSON.parse(rawResultUrls ?? '[]'),
     };
 
     return NextResponse.json({
