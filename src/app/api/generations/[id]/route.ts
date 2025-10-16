@@ -3,16 +3,36 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 
+type RouteContextParams<T extends Record<string, string>> = {
+  params: Promise<{ [K in keyof T]: string | string[] | undefined }>;
+};
+
+const normalizeParam = (value: string | string[] | undefined): string | null => {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+};
+
 /**
  * GET /api/generations/[id]
  * Get a single generation by ID
  */
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContextParams<{ id: string }>
 ) {
   try {
-    const { id } = await context.params;
+    const params = await context.params;
+    const rawId = normalizeParam(params.id);
+
+    if (!rawId) {
+      return NextResponse.json(
+        { success: false, error: 'Generation ID is required' },
+        { status: 400 }
+      );
+    }
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -34,7 +54,7 @@ export async function GET(
 
     const generation = await db.generation.findFirst({
       where: {
-        id,
+        id: rawId,
         userId: user.id,
       },
     });
@@ -53,7 +73,7 @@ export async function GET(
 
     const parsedGeneration = {
       ...generation,
-      resultUrls: JSON.parse(rawResultUrls ?? '[]'),
+      resultUrls: JSON.parse(rawResultUrls ?? '[]') as string[],
     };
 
     return NextResponse.json({
@@ -75,10 +95,18 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContextParams<{ id: string }>
 ) {
   try {
-    const { id } = await context.params;
+    const params = await context.params;
+    const rawId = normalizeParam(params.id);
+
+    if (!rawId) {
+      return NextResponse.json(
+        { success: false, error: 'Generation ID is required' },
+        { status: 400 }
+      );
+    }
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -101,7 +129,7 @@ export async function DELETE(
     // Check if generation exists and belongs to user
     const generation = await db.generation.findFirst({
       where: {
-        id,
+        id: rawId,
         userId: user.id,
       },
     });
@@ -115,7 +143,7 @@ export async function DELETE(
 
     // Delete the generation
     await db.generation.delete({
-      where: { id },
+      where: { id: rawId },
     });
 
     return NextResponse.json({

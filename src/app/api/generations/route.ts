@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { GenerationQuerySchema } from '@/schemas/generation.schema';
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     const total = await db.generation.count({ where });
 
     // Fetch generations
-    const generationSelect = {
+    const generationSelect = Prisma.validator<Prisma.GenerationSelect>()({
       id: true,
       originalUrl: true,
       imageCount: true,
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
       isFavorite: true,
       createdAt: true,
       updatedAt: true,
-    } as const;
+    });
 
     const generations = await db.generation.findMany({
       where,
@@ -81,16 +82,18 @@ export async function GET(request: NextRequest) {
       },
       skip: (validatedQuery.page - 1) * validatedQuery.limit,
       take: validatedQuery.limit,
-      select: generationSelect as any,
+      select: generationSelect,
     });
 
     // Parse result URLs from JSON string
-    const parsedGenerations = generations.map((gen) => ({
-      ...gen,
-      resultUrls: JSON.parse(
-        ((gen as { resultUrls?: string | null }).resultUrls ?? '[]') as string
-      ),
-    }));
+    const parsedGenerations = generations.map((gen) => {
+      const rawResultUrls = gen.resultUrls ?? '[]';
+
+      return {
+        ...gen,
+        resultUrls: JSON.parse(rawResultUrls) as string[],
+      };
+    });
 
     return NextResponse.json({
       success: true,

@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Production optimizations
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Enable TypeScript checking in production
   },
   reactStrictMode: true, // Enable React strict mode for production
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // Enable ESLint in production builds
   },
   // Output configuration for deployment
   output: 'standalone',

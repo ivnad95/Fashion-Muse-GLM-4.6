@@ -4,16 +4,36 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { FavoriteToggleSchema } from '@/schemas/generation.schema';
 
+type RouteContextParams<T extends Record<string, string>> = {
+  params: Promise<{ [K in keyof T]: string | string[] | undefined }>;
+};
+
+const normalizeParam = (value: string | string[] | undefined): string | null => {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+};
+
 /**
  * POST /api/generations/[id]/favorite
  * Toggle favorite status
  */
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContextParams<{ id: string }>
 ) {
   try {
-    const { id } = await context.params;
+    const params = await context.params;
+    const id = normalizeParam(params.id);
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Generation ID is required' },
+        { status: 400 }
+      );
+    }
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -52,14 +72,8 @@ export async function POST(
     }
 
     await db.generation.update({
-      where: {
-        id,
-      },
-      data: {
-        isFavorite: {
-          set: isFavorite,
-        },
-      } as any,
+      where: { id },
+      data: { isFavorite },
     });
 
     return NextResponse.json({
