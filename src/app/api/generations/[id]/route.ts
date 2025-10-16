@@ -9,9 +9,10 @@ import { db } from '@/lib/db';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -33,7 +34,7 @@ export async function GET(
 
     const generation = await db.generation.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -70,9 +71,10 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -95,7 +97,7 @@ export async function DELETE(
     // Check if generation exists and belongs to user
     const generation = await db.generation.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -109,7 +111,7 @@ export async function DELETE(
 
     // Delete the generation
     await db.generation.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

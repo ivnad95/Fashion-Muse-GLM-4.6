@@ -10,9 +10,10 @@ import { FavoriteToggleSchema } from '@/schemas/generation.schema';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -39,7 +40,7 @@ export async function POST(
     // Update generation
     const generation = await db.generation.updateMany({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
       data: {
