@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   keywords: ["Fashion", "AI", "Photography", "Photoshoot", "Studio", "Fashion Muse"],
   authors: [{ name: "FASHION MUSE Studio" }],
   icons: {
-    icon: "/logo.png",
+    icon: "/favicon.ico",
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
