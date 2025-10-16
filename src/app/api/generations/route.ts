@@ -62,6 +62,18 @@ export async function GET(request: NextRequest) {
     const total = await db.generation.count({ where });
 
     // Fetch generations
+    const generationSelect = {
+      id: true,
+      originalUrl: true,
+      imageCount: true,
+      aspectRatio: true,
+      resultUrls: true,
+      status: true,
+      isFavorite: true,
+      createdAt: true,
+      updatedAt: true,
+    } as const;
+
     const generations = await db.generation.findMany({
       where,
       orderBy: {
@@ -69,23 +81,15 @@ export async function GET(request: NextRequest) {
       },
       skip: (validatedQuery.page - 1) * validatedQuery.limit,
       take: validatedQuery.limit,
-      select: {
-        id: true,
-        originalUrl: true,
-        imageCount: true,
-        aspectRatio: true,
-        resultUrls: true,
-        status: true,
-        isFavorite: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: generationSelect as any,
     });
 
     // Parse result URLs from JSON string
     const parsedGenerations = generations.map((gen) => ({
       ...gen,
-      resultUrls: JSON.parse(gen.resultUrls || '[]'),
+      resultUrls: JSON.parse(
+        ((gen as { resultUrls?: string | null }).resultUrls ?? '[]') as string
+      ),
     }));
 
     return NextResponse.json({
