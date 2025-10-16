@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { UserSettingsSchema } from '@/schemas/user.schema';
+import { encryptSecret } from '@/lib/encryption';
 
 /**
  * GET /api/user/settings
@@ -33,18 +34,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Return settings or defaults
-    const settings = user.settings || {
-      displayName: user.name,
-      aspectRatio: 'portrait',
-      blurStrength: 24,
-      theme: 'dark',
-      language: 'en',
-      geminiApiKey: undefined,
-    };
+    const hasGeminiKey = Boolean(user.settings?.encryptedGeminiApiKey && user.settings?.geminiApiKeyIv);
 
     return NextResponse.json({
       success: true,
-      settings,
+      settings: {
+        displayName: user.settings?.displayName ?? user.name,
+        aspectRatio: user.settings?.aspectRatio ?? 'portrait',
+        blurStrength: user.settings?.blurStrength ?? 24,
+        theme: user.settings?.theme ?? 'dark',
+        language: user.settings?.language ?? 'en',
+        hasGeminiKey,
+      },
     });
   } catch (error) {
     console.error('Error fetching settings:', error);
@@ -86,10 +87,18 @@ export async function PUT(request: NextRequest) {
 
     const { geminiApiKey, ...rest } = validatedSettings;
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       ...rest,
-      ...(geminiApiKey !== undefined ? { geminiApiKey } : {}),
     };
+
+    if (geminiApiKey === '') {
+      payload.encryptedGeminiApiKey = null;
+      payload.geminiApiKeyIv = null;
+    } else if (typeof geminiApiKey === 'string') {
+      const { encrypted, iv } = encryptSecret(geminiApiKey);
+      payload.encryptedGeminiApiKey = encrypted;
+      payload.geminiApiKeyIv = iv;
+    }
 
     // Upsert settings
     const settings = await db.userSettings.upsert({
@@ -103,7 +112,14 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      settings,
+      settings: {
+        displayName: settings.displayName ?? user.name,
+        aspectRatio: settings.aspectRatio,
+        blurStrength: settings.blurStrength,
+        theme: settings.theme,
+        language: settings.language,
+        hasGeminiKey: Boolean(settings.encryptedGeminiApiKey && settings.geminiApiKeyIv),
+      },
     });
   } catch (error: any) {
     console.error('Error updating settings:', error);

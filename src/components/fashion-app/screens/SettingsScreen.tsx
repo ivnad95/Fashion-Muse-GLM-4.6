@@ -32,6 +32,7 @@ export function SettingsScreen({
   const [localApiKey, setLocalApiKey] = useState(customApiKey);
   const [loadingRemoteSettings, setLoadingRemoteSettings] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [hasRemoteGeminiKey, setHasRemoteGeminiKey] = useState(false);
 
   useEffect(() => {
     setLocalName(profileName);
@@ -78,13 +79,9 @@ export function SettingsScreen({
             setBlurStrength(settings.blurStrength);
           }
 
-          if (settings.geminiApiKey) {
-            setLocalApiKey(settings.geminiApiKey);
-            setCustomApiKey(settings.geminiApiKey);
-          } else {
-            setLocalApiKey('');
-            setCustomApiKey('');
-          }
+          setHasRemoteGeminiKey(Boolean(settings.hasGeminiKey));
+          setLocalApiKey('');
+          setCustomApiKey('');
         }
       } catch (error) {
         console.error('Failed to load account settings', error);
@@ -113,6 +110,7 @@ export function SettingsScreen({
           setLocalApiKey('');
           setCustomApiKey('');
         }
+        setHasRemoteGeminiKey(false);
       } catch (error) {
         console.error('Error loading local settings', error);
       }
@@ -122,29 +120,41 @@ export function SettingsScreen({
   const handleSaveSettings = async () => {
     setStatusMessage(null);
     setProfileName(localName);
-    setCustomApiKey(localApiKey);
 
     if (session) {
+      const trimmedKey = localApiKey.trim();
       try {
+        setLoadingRemoteSettings(true);
+        const payload: Record<string, unknown> = {
+          displayName: localName,
+          aspectRatio,
+          blurStrength,
+        };
+
+        if (trimmedKey) {
+          payload.geminiApiKey = trimmedKey;
+        }
+
         const response = await fetch('/api/user/settings', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            displayName: localName,
-            aspectRatio,
-            blurStrength,
-            geminiApiKey: localApiKey || undefined,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
           throw new Error(await response.text());
         }
 
+        const data = await response.json();
+        setHasRemoteGeminiKey(Boolean(data?.settings?.hasGeminiKey));
+        setLocalApiKey('');
+        setCustomApiKey('');
         setStatusMessage('Account settings updated successfully.');
       } catch (error) {
         console.error('Failed to save account settings', error);
         setStatusMessage('Failed to update account settings. Please try again.');
+      } finally {
+        setLoadingRemoteSettings(false);
       }
     } else {
       try {
@@ -154,11 +164,45 @@ export function SettingsScreen({
         } else {
           localStorage.removeItem("virtualPhotoshoot.customApiKey");
         }
+        setHasRemoteGeminiKey(false);
+        setCustomApiKey(localApiKey);
         setStatusMessage('Settings saved locally.');
       } catch (error) {
         console.error('Failed to save local settings', error);
         setStatusMessage('Failed to save settings locally.');
       }
+    }
+  };
+
+  const handleRemoveStoredKey = async () => {
+    if (!session) return;
+    try {
+      setLoadingRemoteSettings(true);
+      setStatusMessage(null);
+      const response = await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: localName,
+          aspectRatio,
+          blurStrength,
+          geminiApiKey: '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      setHasRemoteGeminiKey(false);
+      setLocalApiKey('');
+      setCustomApiKey('');
+      setStatusMessage('Gemini API key removed from your account.');
+    } catch (error) {
+      console.error('Failed to remove Gemini API key', error);
+      setStatusMessage('Failed to remove the stored Gemini API key. Please try again.');
+    } finally {
+      setLoadingRemoteSettings(false);
     }
   };
 
@@ -202,13 +246,22 @@ export function SettingsScreen({
               </div>
             </div>
             <div
-              className={`${localApiKey ? 'bg-green-500/20 border border-green-500/50' : 'bg-yellow-500/20 border border-yellow-500/50'} rounded-lg p-3`}
+              className={`${hasRemoteGeminiKey ? 'bg-green-500/20 border border-green-500/50' : 'bg-yellow-500/20 border border-yellow-500/50'} rounded-lg p-3`}
             >
-              <p className={`${localApiKey ? 'text-green-400' : 'text-yellow-400'} text-sm`}>
-                {localApiKey
-                  ? '✓ Gemini API key on file. Every generation will use your Google account credentials.'
-                  : 'Add your Gemini API key below to enable generations with your Google account.'}
+              <p className={`${hasRemoteGeminiKey ? 'text-green-400' : 'text-yellow-400'} text-sm`}>
+                {hasRemoteGeminiKey
+                  ? '✓ Gemini API key is securely stored. Generations will use your Google account automatically.'
+                  : 'Add your Gemini API key below so generations can run under your Google account.'}
               </p>
+              {hasRemoteGeminiKey && (
+                <button
+                  className="text-xs text-red-300 underline mt-2"
+                  onClick={handleRemoveStoredKey}
+                  disabled={loadingRemoteSettings}
+                >
+                  Remove stored Gemini API key
+                </button>
+              )}
             </div>
             <button 
               className="glass-3d-button delete-button w-full"
@@ -255,6 +308,11 @@ export function SettingsScreen({
             <p className="text-gray-400 text-sm">
               Not signed in? Paste your Gemini API key below so we can run generations on your behalf.
               You can create one at <span className="text-blue-400">makersuite.google.com/app/apikey</span>.
+            </p>
+          )}
+          {session && hasRemoteGeminiKey && (
+            <p className="text-green-300 text-xs">
+              A key is already stored. Leave the field blank to keep it, or paste a new key to replace it.
             </p>
           )}
           <div>

@@ -82,7 +82,8 @@ CREATE TABLE "UserSettings" (
     "blurStrength" INTEGER NOT NULL DEFAULT 24,
     "theme" TEXT NOT NULL DEFAULT 'dark',
     "language" TEXT NOT NULL DEFAULT 'en',
-    "geminiApiKey" TEXT,
+    "encryptedGeminiApiKey" TEXT,
+    "geminiApiKeyIv" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

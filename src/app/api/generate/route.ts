@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { decryptSecret } from '@/lib/encryption';
 
 class GeminiAPIError extends Error {
     status?: number;
@@ -433,7 +434,21 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      geminiApiKey = user?.settings?.geminiApiKey || apiKey || process.env.GEMINI_API_KEY || "";
+      let decryptedKey: string | null = null;
+      try {
+        decryptedKey = decryptSecret({
+          encrypted: user?.settings?.encryptedGeminiApiKey ?? undefined,
+          iv: user?.settings?.geminiApiKeyIv ?? undefined,
+        });
+      } catch (error) {
+        console.error('Failed to decrypt Gemini API key', error);
+        return NextResponse.json(
+          { error: 'Server configuration error: missing or invalid ENCRYPTION_KEY.' },
+          { status: 500 }
+        );
+      }
+
+      geminiApiKey = decryptedKey || apiKey || process.env.GEMINI_API_KEY || "";
 
       if (!geminiApiKey) {
         return NextResponse.json(
