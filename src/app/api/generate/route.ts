@@ -171,12 +171,12 @@ Study the uploaded image carefully and extract:
 - The EXACT clothing items, colors, patterns, textures, and fit
 - The model's body proportions and build
 
-CRITICAL PRESERVATION REQUIREMENTS:
-✓ FACE: Maintain 100% facial likeness - same eyes, nose, mouth, jawline, cheekbones, and facial expressions
-✓ HAIR: Keep the exact hairstyle, color, length, and texture
-✓ CLOTHING: Preserve every detail of the outfit - same colors, fabrics, fit, wrinkles, and styling
-✓ BODY: Maintain the model's body type, proportions, and build
-✓ SKIN: Keep the same skin tone, texture, and any visible features
+	CRITICAL PRESERVATION REQUIREMENTS:
+	✓ FACE SWAP: The most critical task is to perform a seamless, photorealistic face swap. The face from the reference image MUST be perfectly transferred to the generated image, maintaining 100% facial likeness, expression, and all unique features (eyes, nose, mouth, jawline, cheekbones).
+	✓ HAIR: Keep the exact hairstyle, color, length, and texture.
+	✓ CLOTHING: Preserve every detail of the outfit - same colors, fabrics, fit, wrinkles, and styling.
+	✓ BODY: Maintain the model's body type, proportions, and build.
+	✓ SKIN: Keep the same skin tone, texture, and any visible features.
 
 STUDIO ENVIRONMENT (MUST CHANGE):
 ✗ BACKGROUND: Replace with ${background}
@@ -205,17 +205,18 @@ TECHNICAL PHOTOGRAPHY REQUIREMENTS:
 - Perfectly rendered hands and fingers if visible
 - Natural eye reflections (catchlights) from studio lighting
 
-REALISM CHECKLIST:
-✓ Anatomically accurate proportions
-✓ Realistic muscle tension and body mechanics
-✓ Natural fabric draping and wrinkles
-✓ Proper weight distribution in pose
-✓ Believable interaction with gravity
-✓ Professional model posing and body language
-✓ Natural facial expressions and microexpressions
-✓ Realistic hair movement and behavior
-✓ Accurate light interaction with surfaces
-✓ Professional photography depth and dimension
+	REALISM CHECKLIST:
+	✓ Anatomically accurate proportions
+	✓ Realistic muscle tension and body mechanics
+	✓ Natural fabric draping and wrinkles
+	✓ Proper weight distribution in pose
+	✓ Believable interaction with gravity
+	✓ Professional model posing and body language
+	✓ Natural facial expressions and microexpressions
+	✓ Realistic hair movement and behavior
+	✓ Accurate light interaction with surfaces
+	✓ Professional photography depth and dimension
+	✓ **HYPER-REALISM:** The final image must be indistinguishable from a professional photograph, with no artifacts, warping, or AI-generated look. Focus on perfect hands, natural eyes, and flawless skin texture.
 
 OUTPUT: Generate a flawless, photorealistic professional studio portrait that looks indistinguishable from a real photograph taken by a master fashion photographer. The image should be so realistic that it could be published in Vogue, Harper's Bazaar, or any top fashion magazine without question.`;
 

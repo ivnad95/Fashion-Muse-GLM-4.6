@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       originalUrl: true,
       imageCount: true,
       aspectRatio: true,
-      resultUrls: true,
+      imageUrls: true,
       status: true,
       isFavorite: true,
       createdAt: true,
@@ -85,15 +85,13 @@ export async function GET(request: NextRequest) {
       select: generationSelect,
     });
 
-    // Parse result URLs from JSON string
-    const parsedGenerations = generations.map((gen) => {
-      const rawResultUrls = gen.resultUrls ?? '[]';
-
-      return {
-        ...gen,
-        resultUrls: JSON.parse(rawResultUrls) as string[],
-      };
-    });
+	    // The field is now an array of strings in the database, no need to parse JSON.
+	    const parsedGenerations = generations.map((gen) => {
+	      return {
+	        ...gen,
+	        imageUrls: gen.imageUrls ?? [],
+	      };
+	    });
 
     return NextResponse.json({
       success: true,
