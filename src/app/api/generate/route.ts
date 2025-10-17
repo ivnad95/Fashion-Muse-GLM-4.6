@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { decryptSecret } from '@/lib/encryption';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 class GeminiAPIError extends Error {
     status?: number;
@@ -415,8 +418,35 @@ async function generatePhotoshoot(base64ImageData: string, numberOfImages = 8) {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  let generationId: string | undefined;
+  
   try {
-    const { prompt, image, numberOfImages = 1, apiKey, useUserAccount, userId } = await request.json();
+    // Get session for authenticated users
+    const session = await getServerSession(authOptions);
+    
+    // Rate limiting
+    const identifier = session?.user?.id || getClientIdentifier(request);
+    const rateLimit = checkRateLimit(identifier, RATE_LIMITS.GENERATION);
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded. Please wait before generating more images.',
+          resetIn: Math.ceil(rateLimit.resetIn / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimit.limit.toString(),
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': new Date(Date.now() + rateLimit.resetIn).toISOString(),
+          },
+        }
+      );
+    }
+    
+    const { prompt, image, numberOfImages = 1, apiKey, useUserAccount, userId, aspectRatio = 'portrait' } = await request.json();
 
     if (!image) {
       return NextResponse.json(
@@ -492,6 +522,24 @@ export async function POST(request: NextRequest) {
     console.log('Base64 data length:', base64ImageData.length);
     console.log('API Key provided:', !!geminiApiKey);
     console.log('API Key length:', geminiApiKey.length);
+    
+    // Create generation record in database if user is authenticated
+    if (session?.user?.id) {
+      const generation = await db.generation.create({
+        data: {
+          userId: session.user.id,
+          originalUrl: '', // Will store in Vercel Blob later
+          imageCount: numberOfImages,
+          aspectRatio,
+          prompt: prompt || 'Professional fashion photography',
+          imageUrls: [],
+          status: 'processing',
+          modelUsed: GEMINI_CONFIG.model,
+        },
+      });
+      generationId = generation.id;
+      console.log('Created generation record:', generationId);
+    }
 
     const results = await generatePhotoshoot(base64ImageData, numberOfImages);
 
@@ -506,9 +554,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Update generation record with results if user is authenticated
+    if (generationId && session?.user?.id) {
+      const processingTime = Date.now() - startTime;
+      const imageUrls = results.successful.map(img => img.imageUrl);
+      
+      await db.generation.update({
+        where: { id: generationId },
+        data: {
+          imageUrls,
+          status: results.successful.length > 0 ? 'completed' : 'failed',
+          errorMessage: results.failed.length > 0 
+            ? `${results.failed.length} images failed to generate` 
+            : null,
+          processingTime,
+          completedAt: new Date(),
+        },
+      });
+      
+      console.log('Updated generation record:', generationId, {
+        success: results.successful.length,
+        failed: results.failed.length,
+        processingTime,
+      });
+    }
+    
     return NextResponse.json({
       success: true,
       results,
+      generationId,
       message: `Generated ${results.successful.length} out of ${results.total} images successfully`
     });
 
