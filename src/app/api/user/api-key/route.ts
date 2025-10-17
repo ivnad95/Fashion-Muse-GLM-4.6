@@ -170,29 +170,3 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-/**
- * Helper function to get decrypted API key (for internal use)
- */
-export async function getDecryptedApiKey(userId: string): Promise<string | null> {
-  try {
-    const settings = await db.userSettings.findUnique({
-      where: { userId },
-      select: {
-        encryptedGeminiApiKey: true,
-        geminiApiKeyIv: true,
-      },
-    });
-
-    if (!settings) {
-      return null;
-    }
-
-    return decryptSecret({
-      encrypted: settings.encryptedGeminiApiKey,
-      iv: settings.geminiApiKeyIv,
-    });
-  } catch (error) {
-    console.error('Error decrypting API key:', error);
-    return null;
-  }
-}
