@@ -44,9 +44,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className="antialiased bg-background text-foreground"
-        style={{
-          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        }}
       >
         <SessionProvider>
           {children}
